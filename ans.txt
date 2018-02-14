@@ -5,4 +5,24 @@ select articles.title, count(log.path) as views from articles left join log on l
 select authors.name, subq2.views from (select articles.author, sum(subq.views) as views from articles left join (select articles.slug, count(log.path) as views from articles left join log on log.path like concat('%',articles.slug,'%') group by articles.slug) as subq on articles.slug = subq.slug group by articles.author order by views desc) as subq2 right join authors on subq2.author = authors.id;
 
 3------------------
-select d, e_rate from (select t_errors.d as d, ((cast(t_errors.errors as real)/cast(t_hits.hits as real)) * 100) as e_rate from (select date(time) as d, count(*) as errors from log where status like '%404 NOT FOUND%' group by d) as t_errors join (select date(time) as d, count(*) as hits from log where status like '%200 OK%' group by d) as t_hits on t_errors.d = t_hits.d) as subq where e_rate > 1 order by e_rate desc;
+select to_char(d, 'FMMonth DD, YYYY') as dt, round(e_rate::numeric, 2) as error_rate
+from (
+        select
+            t_errors.d as d,
+            ((cast(t_errors.errors as real)/cast(t_hits.hits as real)) * 100) 
+                as e_rate
+        from
+                (select date(time) as d, count(*) as errors
+                from log where status like '%404 NOT FOUND%'
+                group by d
+                ) as t_errors
+            join
+                (select date(time) as d, count(*) as hits
+                from log
+                where status like '%200 OK%'
+                group by d
+                ) as t_hits
+            on t_errors.d = t_hits.d
+    ) as subq
+where e_rate > 1
+order by e_rate desc;
