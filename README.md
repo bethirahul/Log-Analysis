@@ -2,13 +2,13 @@
 
 #### To Run...
 
-Run the ```logAnalysis.py``` using python 3.
-Open [localhost:8000](localhost:8000) or [127.0.0.1:8000](127.0.0.1:8000) in any browser.
+Run the [```logAnalysis.py```](/logAnalysis.py) using python 3.
+Open [localhost:8000](http://localhost:8000) or [127.0.0.1:8000](http://127.0.0.1:8000) in any browser.
 Wait for a while for the queries to run and load the results.
 
 ## Design
 
-- Python code ```logAnalysis.py``` runs a simple python server (for ever) on localhost:8000 address.
+- Python code [```logAnalysis.py```](/logAnalysis.py) runs a simple python server (for ever) on localhost:8000 address.
 
 - As soon as it gets a HTTP GET request, it connects to the news database and sends three queries for the three questions from the exercise description.
 
