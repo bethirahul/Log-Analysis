@@ -16,7 +16,6 @@ Wait for a while for the queries to run and load the results.
 
 **Note**: News database was setup initially in a Linux VM _(Vagrant)_.
 
-
 ### Output
 
 ```plain
