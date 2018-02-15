@@ -1,4 +1,4 @@
-# Python 3.6.4
+#!/usr/bin/env python3
 
 import psycopg2
 import http.server
@@ -22,11 +22,11 @@ class LogAnalysis(http.server.BaseHTTPRequestHandler):
         cursor = dbNews.cursor()
 
         # 1st Query and capturing response
-        cursor.execute("""select articles.title, count(log.path) as views
-            from articles left join log
-                on log.path like concat('%',articles.slug,'%')
-            group by articles.title
-            order by views desc
+        cursor.execute("""SELECT articles.title, count(log.path) AS views
+            FROM articles LEFT JOIN log
+                ON log.path LIKE concat('%',articles.slug,'%')
+            GROUP BY articles.title
+            ORDER BY views DESC
             limit 3
         """)
         ans = cursor.fetchall()
@@ -39,20 +39,20 @@ class LogAnalysis(http.server.BaseHTTPRequestHandler):
         output_text += "\n\n"
 
         # 2nd Query and capturing response
-        cursor.execute("""select authors.name, subq2.views
-            from (select articles.author, sum(subq.views) as views
-                    from articles left join
-                        (select articles.slug, count(log.path) as views
-                            from articles left join log
-                                on log.path like concat('%',articles.slug,'%')
-                            group by articles.slug
-                        ) as subq
-                        on articles.slug = subq.slug
-                    group by articles.author
-                    order by views desc
-                ) as subq2
-                right join authors
-                on subq2.author = authors.id
+        cursor.execute("""SELECT authors.name, subq2.views
+            FROM (SELECT articles.author, sum(subq.views) AS views
+                    FROM articles LEFT JOIN
+                        (SELECT articles.slug, count(log.path) AS views
+                            FROM articles LEFT JOIN log
+                                ON log.path LIKE concat('%',articles.slug,'%')
+                            GROUP BY articles.slug
+                        ) AS subq
+                        ON articles.slug = subq.slug
+                    GROUP BY articles.author
+                    ORDER BY views DESC
+                ) AS subq2
+                RIGHT JOIN authors
+                ON subq2.author = authors.id
         """)
         ans = cursor.fetchall()
 
@@ -65,28 +65,28 @@ class LogAnalysis(http.server.BaseHTTPRequestHandler):
 
         # 3rd Query and capturing response
         cursor.execute("""
-            select
-                to_char(d, 'FMMonth DD, YYYY') as dt,
-                round(e_rate::numeric, 2) as error_rate
-            from (
-                    select
-                        t_errors.d as d,
-                        ((cast(t_errors.errors as real) /
-                            cast(t_hits.hits as real)) * 100) as e_rate
-                    from (select date(time) as d, count(*) as errors
-                            from log
-                            where status like '%404 NOT FOUND%'
-                            group by d
-                            ) as t_errors
-                        join (select date(time) as d, count(*) as hits
-                            from log
-                            where status like '%200 OK%'
-                            group by d
-                            ) as t_hits
-                        on t_errors.d = t_hits.d
-                ) as subq
+            SELECT
+                to_char(d, 'FMMonth DD, YYYY') AS dt,
+                round(e_rate::numeric, 2) AS error_rate
+            FROM (
+                    SELECT
+                        t_errors.d AS d,
+                        ((cast(t_errors.errors AS real) /
+                            cast(t_hits.hits AS real)) * 100) AS e_rate
+                    FROM (SELECT date(time) AS d, count(*) AS errors
+                            FROM log
+                            where status LIKE '%404 NOT FOUND%'
+                            GROUP BY d
+                            ) AS t_errors
+                        JOIN (SELECT date(time) AS d, count(*) AS hits
+                            FROM log
+                            where status LIKE '%200 OK%'
+                            GROUP BY d
+                            ) AS t_hits
+                        ON t_errors.d = t_hits.d
+                ) AS subq
             where e_rate > 1
-            order by e_rate desc;
+            ORDER BY e_rate DESC;
         """)
         ans = cursor.fetchall()
 
@@ -108,4 +108,5 @@ class LogAnalysis(http.server.BaseHTTPRequestHandler):
 if __name__ == '__main__':
     server_address = ('', 8000)
     httpd = http.server.HTTPServer(server_address, LogAnalysis)
+    print("Server is up and running at http://localhost:8000")
     httpd.serve_forever()
