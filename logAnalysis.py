@@ -4,9 +4,12 @@ import psycopg2
 import http.server
 import os
 
-class Shortener(http.server.BaseHTTPRequestHandler):
+
+# custom python basic server to handle HTTP requests
+class LogAnalysis(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         """Queries are sent and answers are printed in HTML format"""
+
         # Sending 200 OK response
         self.send_response(200)
         self.send_header('Content-type', 'text/plain; charset=utf-8')
@@ -26,11 +29,12 @@ class Shortener(http.server.BaseHTTPRequestHandler):
             order by views desc
             limit 3
         """)
-        ans1 = cursor.fetchall()
+        ans = cursor.fetchall()
 
+        # Formatting 1st query output
         output_text += "Top three most popular articles:\n"
         output_text += "-------------------------------\n"
-        for key, value in ans1:
+        for key, value in ans:
             output_text += "{0} -- {1} views\n".format(key, str(value))
         output_text += "\n\n"
 
@@ -50,11 +54,12 @@ class Shortener(http.server.BaseHTTPRequestHandler):
                 right join authors
                 on subq2.author = authors.id
         """)
-        ans2 = cursor.fetchall()
+        ans = cursor.fetchall()
 
+        # Formatting 2nd query output
         output_text += "Most popular Authors:\n"
         output_text += "--------------------\n"
-        for key, value in ans2:
+        for key, value in ans:
             output_text += "{0} -- {1} views\n".format(key, str(value))
         output_text += "\n\n"
 
@@ -83,12 +88,13 @@ class Shortener(http.server.BaseHTTPRequestHandler):
             where e_rate > 1
             order by e_rate desc;
         """)
-        ans3 = cursor.fetchall()
+        ans = cursor.fetchall()
 
+        # Formatting 3rd query output
         output_text += "On the following days, more than 1% of requests lead "
         output_text += "to errors:\n-----------------------------------------"
         output_text += "---------------------\n"
-        for key, value in ans3:
+        for key, value in ans:
             output_text += "{0} -- {1}% errors\n".format(key, str(value))
         output_text += "\n\n"
 
@@ -98,7 +104,8 @@ class Shortener(http.server.BaseHTTPRequestHandler):
         # Writing all answers as plain text
         self.wfile.write(output_text.encode())
 
+
 if __name__ == '__main__':
     server_address = ('', 8000)
-    httpd = http.server.HTTPServer(server_address, Shortener)
+    httpd = http.server.HTTPServer(server_address, LogAnalysis)
     httpd.serve_forever()
