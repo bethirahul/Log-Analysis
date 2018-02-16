@@ -47,8 +47,8 @@ def connect_db(database_name):
         db = psycopg2.connect(dbname=database_name)
         return db
 
-    except:
-        print ("Unable to connect to database")
+    except psycopg2.Error as e:
+        print("Unable to connect to database")
         sys.exit(1)
 
 
@@ -62,7 +62,7 @@ def get_top_three_articles(cursor):
         limit 3"""
     cursor.execute(query)
     ans = cursor.fetchall()
-    result  = "Top three most popular articles:\n"
+    result = "Top three most popular articles:\n"
     result += "-------------------------------\n"
     for key, value in ans:
         result += "{0} -- {1} views\n".format(key, str(value))
