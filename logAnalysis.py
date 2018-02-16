@@ -62,8 +62,8 @@ def get_top_three_articles(cursor):
         limit 3"""
     cursor.execute(query)
     ans = cursor.fetchall()
-    result = "Most popular Authors:\n"
-    result += "--------------------\n"
+    result  = "Top three most popular articles:\n"
+    result += "-------------------------------\n"
     for key, value in ans:
         result += "{0} -- {1} views\n".format(key, str(value))
     return result
@@ -105,15 +105,16 @@ def get_errors_over_one(cursor):
                 SELECT
                     t_errors.d AS d,
                     ((cast(t_errors.errors AS real) /
-                        cast(t_hits.hits AS real)) * 100) AS e_rate
+                        (cast(t_hits.hits AS real) +
+                        cast(t_errors.errors AS real))) * 100) AS e_rate
                 FROM (SELECT date(time) AS d, count(*) AS errors
                         FROM log
-                        where status LIKE '%404 NOT FOUND%'
+                        where status = '404 NOT FOUND'
                         GROUP BY d
                         ) AS t_errors
                     JOIN (SELECT date(time) AS d, count(*) AS hits
                         FROM log
-                        where status LIKE '%200 OK%'
+                        where status = '200 OK'
                         GROUP BY d
                         ) AS t_hits
                     ON t_errors.d = t_hits.d
@@ -122,10 +123,11 @@ def get_errors_over_one(cursor):
         ORDER BY e_rate DESC"""
     cursor.execute(query)
     ans = cursor.fetchall()
-    result = "Most popular Authors:\n"
-    result += "--------------------\n"
+    result = "On the following days, more than 1% of requests lead to errors:"
+    result += "\n------------------------------------------------------------"
+    result += "--\n"
     for key, value in ans:
-        result += "{0} -- {1} views\n".format(key, str(value))
+        result += "{0} -- {1}% errors\n".format(key, str(value))
     return result
 
 
